@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ciphervault"
+version = "0.1.0"
+description = "An educational cryptographic text protection application"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=50.0,<51.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0,<10.0",
+    "ruff>=0.17,<0.18"
+]
+
+[project.scripts]
+ciphervault = "ciphervault.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

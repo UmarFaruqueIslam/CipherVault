@@ -1,0 +1,42 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Test, coverage, and lint caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secret configuration
+.env
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+private_keys/
+secrets/
+
+# Generated encrypted data and outputs
+*.cipher
+*.enc
+outputs/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+
+# Python build and packaging artifacts
+build/
+dist/
+*.egg-info/
