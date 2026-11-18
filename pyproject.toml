@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ciphervault"
 version = "0.1.0"
-description = "An educational cryptographic text protection application"
+description = "An educational cryptographic file protection application"
 requires-python = ">=3.12"
 dependencies = [
     "cryptography>=50.0,<51.0"

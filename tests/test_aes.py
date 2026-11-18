@@ -79,6 +79,27 @@ def test_empty_plaintext(key: bytes) -> None:
     assert recovered == plaintext
 
 
+def test_empty_aad(key: bytes, plaintext: bytes) -> None:
+    """Empty AAD should work as valid additional authenticated data."""
+    nonce, ciphertext, tag = encrypt(key, plaintext, b"")
+
+    recovered = decrypt(key, nonce, ciphertext, tag, b"")
+
+    assert recovered == plaintext
+
+
+def test_empty_plaintext_modified_tag_fails_authentication(
+    key: bytes,
+) -> None:
+    """An altered tag must fail even when plaintext is empty."""
+    nonce, ciphertext, tag = encrypt(key, b"")
+
+    modified_tag = bytes([tag[0] ^ 1]) + tag[1:]
+
+    with pytest.raises(InvalidTag):
+        decrypt(key, nonce, ciphertext, modified_tag)
+
+
 def test_unicode_plaintext(key: bytes) -> None:
     """Unicode text should survive encryption and decryption."""
     plaintext = "CipherVault — safe encryption".encode()
@@ -295,4 +316,33 @@ def test_invalid_decryption_aad_type_rejected(
             ciphertext,
             tag,
             "not bytes",  # type: ignore[arg-type]
+        )
+
+
+def test_invalid_key_length_rejected_during_decryption(
+    key: bytes,
+    plaintext: bytes,
+) -> None:
+    """Decryption must reject AES keys that are not 32 bytes."""
+    nonce, ciphertext, tag = encrypt(key, plaintext)
+
+    with pytest.raises(ValueError, match="32 bytes"):
+        decrypt(b"short", nonce, ciphertext, tag)
+
+
+def test_invalid_aad_type_rejected_during_decryption(
+    key: bytes,
+    plaintext: bytes,
+    aad: bytes,
+) -> None:
+    """Decryption must reject AAD values that are not bytes or None."""
+    nonce, ciphertext, tag = encrypt(key, plaintext, aad)
+
+    with pytest.raises(TypeError, match="aad must be bytes"):
+        decrypt(
+            key,
+            nonce,
+            ciphertext,
+            tag,
+            "invalid AAD",  # type: ignore[arg-type]
         )

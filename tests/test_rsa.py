@@ -1,6 +1,8 @@
 """Tests for RSA-3072 OAEP encryption and decryption."""
 
 import pytest
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.asymmetric.rsa import (
     RSAPrivateKey,
     RSAPublicKey,
@@ -194,3 +196,50 @@ def test_invalid_ciphertext_length_rejected(
         match=f"exactly {expected_length} bytes",
     ):
         decrypt_key(private_key, invalid_ciphertext)
+
+
+def test_public_key_below_minimum_size_rejected(
+    aes_key: bytes,
+) -> None:
+    """RSA public keys smaller than 3072 bits must be rejected."""
+    small_private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    with pytest.raises(ValueError, match="at least 3072 bits"):
+        encrypt_key(small_private_key.public_key(), aes_key)
+
+
+def test_private_key_below_minimum_size_rejected() -> None:
+    """RSA private keys smaller than 3072 bits must be rejected."""
+    small_private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    ciphertext = bytes(2048 // 8)
+
+    with pytest.raises(ValueError, match="at least 3072 bits"):
+        decrypt_key(small_private_key, ciphertext)
+
+
+def test_decrypted_aes_key_with_invalid_length_rejected(
+    key_pair: tuple[RSAPrivateKey, RSAPublicKey],
+) -> None:
+    """OAEP plaintext must contain exactly 32 bytes."""
+    private_key, public_key = key_pair
+
+    invalid_plaintext = b"short"
+
+    encrypted_key = public_key.encrypt(
+        invalid_plaintext,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None,
+        ),
+    )
+
+    with pytest.raises(ValueError, match="exactly 32 bytes"):
+        decrypt_key(private_key, encrypted_key)
